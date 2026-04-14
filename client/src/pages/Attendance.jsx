@@ -210,26 +210,47 @@ export default function Attendance() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — the whole card is a camera trigger */}
       {!results && !uploading && (
-        <div className="card-elevated" style={{
-          border: '2px dashed var(--border)', borderRadius: '24px',
-          padding: '48px 24px', textAlign: 'center', background: 'var(--card)',
-        }}>
-          <Camera size={44} className="mx-auto mb-4" style={{ color: 'var(--primary)' }} strokeWidth={1.5} />
-          <p className="text-base mb-1.5" style={{ fontWeight: 500, color: 'var(--foreground)' }}>
-            Tap the camera button to capture
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={openCamera}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCamera() } }}
+          aria-label="Open camera to capture"
+          className="card-elevated w-full"
+          style={{
+            border: '2px dashed var(--border)', borderRadius: '24px',
+            padding: '56px 24px', textAlign: 'center', background: 'var(--card)',
+            cursor: 'pointer',
+            display: 'block',
+          }}
+        >
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: 96, height: 96, borderRadius: '999px',
+            background: 'var(--primary)', color: 'var(--primary-foreground)',
+            marginBottom: '20px',
+            boxShadow: '0 10px 24px rgba(118,34,36,0.28)',
+          }}>
+            <Camera size={44} strokeWidth={2} />
+          </span>
+          <p className="text-base mb-1.5" style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+            Tap anywhere here to open camera
           </p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Matched faces are saved instantly to {sessionType === 'check_in' ? 'check-in' : 'check-out'}
           </p>
-          <button
-            onClick={openGallery}
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={e => { e.stopPropagation(); openGallery() }}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); e.preventDefault(); openGallery() } }}
             className="mt-5 inline-flex items-center gap-2 px-5 py-3 text-sm font-medium"
-            style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '12px', minHeight: '44px' }}
+            style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '12px', minHeight: '44px', cursor: 'pointer' }}
           >
             <ImageIcon size={16} /> Or pick from gallery
-          </button>
+          </span>
         </div>
       )}
 
