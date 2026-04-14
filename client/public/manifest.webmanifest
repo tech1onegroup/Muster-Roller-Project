@@ -1,0 +1,14 @@
+{
+  "name": "Labour Attendance",
+  "short_name": "Labour",
+  "description": "Face-recognition attendance for site labour",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f3ed",
+  "theme_color": "#762224",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

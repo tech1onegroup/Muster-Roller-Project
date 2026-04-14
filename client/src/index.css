@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+/* =========================================
+   Anthropic Font Family — One Group Theme
+   ========================================= */
+
+@font-face {
+  font-family: 'Anthropic Serif';
+  src: url('/fonts/anthropic/AnthropicSerif_Roman.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Serif';
+  src: url('/fonts/anthropic/AnthropicSerif_Italic.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Sans';
+  src: url('/fonts/anthropic/AnthropicSans_Roman.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Sans';
+  src: url('/fonts/anthropic/AnthropicSans_Italic.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Mono';
+  src: url('/fonts/anthropic/AnthropicMono_Roman.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Mono';
+  src: url('/fonts/anthropic/AnthropicMono_Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* =========================================
+   Samsung One UI Structure + One Group Brand
+   ========================================= */
+
+:root {
+  --primary: #762224;
+  --primary-foreground: #fffcf8;
+  --accent: #c45a5c;
+  --accent-foreground: #fffcf8;
+  --secondary: #e8e6dc;
+  --secondary-foreground: #4d4c48;
+  --background: #f5f3ed;
+  --foreground: #141413;
+  --text: #141413;
+  --text-muted: #5e5d59;
+  --tertiary: #87867f;
+  --border: #f0eee6;
+  --card: #ffffff;
+  --card-foreground: #141413;
+  --muted: #f0eee6;
+  --muted-foreground: #5e5d59;
+  --destructive: #d4453a;
+  --ring: #d1cfc5;
+  --focus: #3898ec;
+  --input: #ffffff;
+  --input-border: #f0eee6;
+  --dark: #323234;
+  --deep-dark: #121214;
+  --sidebar-bg: #323234;
+  --sidebar-fg: #fffcf8;
+  --sidebar-accent: #f0eee6;
+  --radius: 1rem;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Stop iOS / Android from over-scrolling the whole page when a child
+     scroll container hits its edge — keeps the camera modal & sticky bars
+     pinned. */
+  overscroll-behavior-y: none;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Anthropic Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--background);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  /* Dynamic viewport height — collapses correctly when mobile browser
+     chrome (URL bar) shows/hides. Falls back to vh on older browsers. */
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+* {
+  box-sizing: border-box;
+  /* Suppress the dark grey iOS/Android tap flash on every interactive
+     element. We use explicit :active styles where needed. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safari zooms the page when an input has font-size < 16px. Force
+   16px on every form control so taps never trigger zoom. */
+input, select, textarea, button {
+  font-size: 16px;
+  font-family: inherit;
+}
+
+/* Min 44x44px touch targets per Apple HIG / Android Material guidelines. */
+button, [role="button"], a {
+  touch-action: manipulation;
+}
+
+/* Typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Anthropic Serif', Georgia, serif;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+code, pre, kbd {
+  font-family: 'Anthropic Mono', 'JetBrains Mono', monospace;
+}
+
+/* Samsung One UI: generous focus rings */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--focus) !important;
+  box-shadow: 0 0 0 3px rgba(56, 152, 236, 0.15);
+}
+
+/* Samsung One UI: buttons ring shadow */
+.btn-ring {
+  box-shadow: 0px 0px 0px 1px var(--ring);
+}
+.btn-ring:hover {
+  box-shadow: 0px 0px 0px 1px var(--primary);
+}
+
+/* Samsung One UI: elevated card shadow */
+.card-elevated {
+  box-shadow: rgba(0,0,0,0.05) 0px 4px 24px;
+}
+
+/* Warm scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1cfc5; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Samsung One UI: smooth transitions */
+button, a, input, select {
+  transition: all 0.15s ease;
+}

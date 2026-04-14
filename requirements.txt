@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+aiosqlite
+onnxruntime
+opencv-python-headless
+easyocr
+pillow
+numpy
+python-multipart

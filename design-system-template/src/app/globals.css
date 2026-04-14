@@ -1,0 +1,273 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =========================================
+   Anthropic Font Family — One Group Theme
+   INTERNAL USE ONLY. See ARCHITECTURE.md
+   for licensing restrictions.
+   ========================================= */
+
+@font-face {
+  font-family: 'Anthropic Serif';
+  src: url('/fonts/anthropic/AnthropicSerif_Roman.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Serif';
+  src: url('/fonts/anthropic/AnthropicSerif_Italic.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Sans';
+  src: url('/fonts/anthropic/AnthropicSans_Roman.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Sans';
+  src: url('/fonts/anthropic/AnthropicSans_Italic.woff2') format('woff2');
+  font-weight: 400 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Mono';
+  src: url('/fonts/anthropic/AnthropicMono_Roman.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Anthropic Mono';
+  src: url('/fonts/anthropic/AnthropicMono_Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-anthropic-sans, var(--font-inter, sans-serif));
+  --font-mono: var(--font-anthropic-mono, monospace);
+  --font-heading: var(--font-anthropic-serif, var(--font-inter, sans-serif));
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* =========================================
+   LAYER 1 — Samsung One UI (Base Theme)
+   The structural foundation: large rounded
+   corners (1rem), spacious layout, iOS-
+   inspired spacing. All components inherit
+   this look. Samsung Blue for raw theme.
+   ========================================= */
+
+:root[data-theme="samsung-one-ui"] {
+  --background: #F7F7F7;
+  --foreground: #1C1C1E;
+  --card: #FFFFFF;
+  --card-foreground: #1C1C1E;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1C1E;
+  --primary: #0381FE;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F2F2F7;
+  --secondary-foreground: #1C1C1E;
+  --muted: #F2F2F7;
+  --muted-foreground: #8E8E93;
+  --accent: #E8F1FE;
+  --accent-foreground: #0072DE;
+  --destructive: #FF3B30;
+  --border: #E5E5EA;
+  --input: #E5E5EA;
+  --ring: #0381FE;
+  --chart-1: #0381FE;
+  --chart-2: #34C759;
+  --chart-3: #FF9500;
+  --chart-4: #AF52DE;
+  --chart-5: #FF2D55;
+  --radius: 1rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1C1C1E;
+  --sidebar-primary: #0381FE;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8F1FE;
+  --sidebar-accent-foreground: #0072DE;
+  --sidebar-border: #E5E5EA;
+  --sidebar-ring: #0381FE;
+}
+
+:root[data-theme="samsung-one-ui"].dark {
+  --background: #000000;
+  --foreground: #F5F5F7;
+  --card: #1C1C1E;
+  --card-foreground: #F5F5F7;
+  --popover: #1C1C1E;
+  --popover-foreground: #F5F5F7;
+  --primary: #3E91FF;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2C2C2E;
+  --secondary-foreground: #F5F5F7;
+  --muted: #2C2C2E;
+  --muted-foreground: #8E8E93;
+  --accent: #1A3A5C;
+  --accent-foreground: #3E91FF;
+  --destructive: #FF453A;
+  --border: #38383A;
+  --input: #38383A;
+  --ring: #3E91FF;
+  --chart-1: #3E91FF;
+  --chart-2: #30D158;
+  --chart-3: #FF9F0A;
+  --chart-4: #BF5AF2;
+  --chart-5: #FF375F;
+  --radius: 1rem;
+  --sidebar: #1C1C1E;
+  --sidebar-foreground: #F5F5F7;
+  --sidebar-primary: #3E91FF;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1A3A5C;
+  --sidebar-accent-foreground: #3E91FF;
+  --sidebar-border: #38383A;
+  --sidebar-ring: #3E91FF;
+}
+
+/* =========================================
+   LAYER 2 — One Group Brand Overlay
+   Applied ON TOP of Samsung One UI.
+   Replaces colors + fonts with One Group
+   branding. Samsung structural properties
+   (radius 1rem, spacing, layout) preserved.
+   ========================================= */
+
+:root[data-theme="one-group"] {
+  --background: #f5f3ed;
+  --foreground: #141413;
+  --card: #ffffff;
+  --card-foreground: #141413;
+  --popover: #ffffff;
+  --popover-foreground: #141413;
+  --primary: #762224;
+  --primary-foreground: #fffcf8;
+  --secondary: #e8e6dc;
+  --secondary-foreground: #4d4c48;
+  --muted: #f0eee6;
+  --muted-foreground: #5e5d59;
+  --accent: #c45a5c;
+  --accent-foreground: #fffcf8;
+  --destructive: #d4453a;
+  --destructive-foreground: #ffffff;
+  --border: #f0eee6;
+  --input: #f0eee6;
+  --ring: #d1cfc5;
+  --chart-1: #762224;
+  --chart-2: #c45a5c;
+  --chart-3: #e8e6dc;
+  --chart-4: #5e5d59;
+  --chart-5: #323234;
+  --radius: 1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #141413;
+  --sidebar-primary: #762224;
+  --sidebar-primary-foreground: #fffcf8;
+  --sidebar-accent: #f0eee6;
+  --sidebar-accent-foreground: #762224;
+  --sidebar-border: #f0eee6;
+  --sidebar-ring: #d1cfc5;
+}
+
+:root[data-theme="one-group"].dark {
+  --background: #121214;
+  --foreground: #fffcf8;
+  --card: #323234;
+  --card-foreground: #fffcf8;
+  --popover: #323234;
+  --popover-foreground: #fffcf8;
+  --primary: #762224;
+  --primary-foreground: #fffcf8;
+  --secondary: #323234;
+  --secondary-foreground: #fffcf8;
+  --muted: #323234;
+  --muted-foreground: #b0aea5;
+  --accent: #c45a5c;
+  --accent-foreground: #fffcf8;
+  --destructive: #d4453a;
+  --destructive-foreground: #ffffff;
+  --border: #323234;
+  --input: #323234;
+  --ring: #323234;
+  --chart-1: #c45a5c;
+  --chart-2: #762224;
+  --chart-3: #b0aea5;
+  --chart-4: #87867f;
+  --chart-5: #5e5d59;
+  --radius: 1rem;
+  --sidebar: #323234;
+  --sidebar-foreground: #fffcf8;
+  --sidebar-primary: #762224;
+  --sidebar-primary-foreground: #fffcf8;
+  --sidebar-accent: #323234;
+  --sidebar-accent-foreground: #c45a5c;
+  --sidebar-border: #323234;
+  --sidebar-ring: #323234;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
