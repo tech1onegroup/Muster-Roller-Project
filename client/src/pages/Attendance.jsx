@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Camera, Check, Plus, X, RotateCcw, Image as ImageIcon } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Camera, Check, Image as ImageIcon } from 'lucide-react'
 import { uploadGroupPhoto, confirmAttendance, getLaborers } from '../hooks/useApi'
 
 const selectStyle = {
@@ -23,98 +23,23 @@ export default function Attendance() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // Camera capture state
-  const [cameraOpen, setCameraOpen] = useState(false)
-  const [capturedBlob, setCapturedBlob] = useState(null)
-  const [capturedUrl, setCapturedUrl] = useState(null)
-  const videoRef = useRef(null)
-  const streamRef = useRef(null)
-  const fileInputRef = useRef(null)
+  const cameraInputRef = useRef(null)
+  const galleryInputRef = useRef(null)
 
   useEffect(() => {
     getLaborers({ status: 'active' }).then(setLaborers).catch(() => {})
   }, [])
 
-  const stopStream = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-      streamRef.current = null
-    }
-  }, [])
-
-  const startStream = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: false,
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        await videoRef.current.play().catch(() => {})
-      }
-    } catch (e) {
-      setError('Camera unavailable: ' + (e.message || 'permission denied'))
-      setCameraOpen(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (cameraOpen && !capturedBlob) startStream()
-    return () => { if (!cameraOpen) stopStream() }
-  }, [cameraOpen, capturedBlob, startStream, stopStream])
-
-  useEffect(() => () => stopStream(), [stopStream])
-
   const openCamera = () => {
     setError('')
     setSuccess('')
-    setCapturedBlob(null)
-    if (capturedUrl) URL.revokeObjectURL(capturedUrl)
-    setCapturedUrl(null)
-    setCameraOpen(true)
+    cameraInputRef.current?.click()
   }
 
-  const closeCamera = () => {
-    stopStream()
-    setCameraOpen(false)
-    setCapturedBlob(null)
-    if (capturedUrl) URL.revokeObjectURL(capturedUrl)
-    setCapturedUrl(null)
-  }
-
-  const takeSnapshot = () => {
-    const video = videoRef.current
-    if (!video || !video.videoWidth) return
-    const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-    canvas.toBlob(
-      blob => {
-        if (!blob) return
-        setCapturedBlob(blob)
-        setCapturedUrl(URL.createObjectURL(blob))
-        stopStream()
-      },
-      'image/jpeg',
-      0.92,
-    )
-  }
-
-  const retake = () => {
-    setCapturedBlob(null)
-    if (capturedUrl) URL.revokeObjectURL(capturedUrl)
-    setCapturedUrl(null)
-    startStream()
-  }
-
-  const usePhoto = async () => {
-    if (!capturedBlob) return
-    const file = new File([capturedBlob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' })
-    closeCamera()
-    await processPhoto(file)
+  const openGallery = () => {
+    setError('')
+    setSuccess('')
+    galleryInputRef.current?.click()
   }
 
   const processPhoto = async (file) => {
@@ -226,7 +151,7 @@ export default function Attendance() {
   const selectedCount = results ? results.filter(f => f.selected).length : 0
 
   return (
-    <div className="max-w-4xl mx-auto" style={{ paddingBottom: '120px' }}>
+    <div className="max-w-4xl mx-auto" style={{ paddingBottom: '160px' }}>
       <h2 className="mb-5 sm:mb-8" style={{ color: 'var(--primary)', fontSize: '24px', fontWeight: 500 }}>
         Attendance
       </h2>
@@ -240,7 +165,7 @@ export default function Attendance() {
               <button
                 key={t}
                 onClick={() => setSessionType(t)}
-                className="text-sm font-medium"
+                className="text-sm font-medium flex-1 sm:flex-none"
                 style={{
                   background: sessionType === t ? 'var(--primary)' : 'var(--card)',
                   color: sessionType === t ? 'var(--primary-foreground)' : 'var(--foreground)',
@@ -293,19 +218,18 @@ export default function Attendance() {
         }}>
           <Camera size={44} className="mx-auto mb-4" style={{ color: 'var(--primary)' }} strokeWidth={1.5} />
           <p className="text-base mb-1.5" style={{ fontWeight: 500, color: 'var(--foreground)' }}>
-            Tap + to capture
+            Tap the camera button to capture
           </p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Matched faces are saved instantly to {sessionType === 'check_in' ? 'check-in' : 'check-out'}
           </p>
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium"
-            style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '12px' }}
+            onClick={openGallery}
+            className="mt-5 inline-flex items-center gap-2 px-5 py-3 text-sm font-medium"
+            style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '12px', minHeight: '44px' }}
           >
             <ImageIcon size={16} /> Or pick from gallery
           </button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFilePick} className="hidden" />
         </div>
       )}
 
@@ -330,17 +254,17 @@ export default function Attendance() {
             </p>
             <div className="flex items-center gap-2">
               <button onClick={() => setResults(prev => prev.map(f => ({ ...f, selected: true })))}
-                className="px-3 py-1.5 text-xs font-medium"
-                style={{ background: 'var(--primary)', color: 'var(--primary-foreground)', borderRadius: '10px' }}>
+                className="px-3 py-2 text-xs font-medium"
+                style={{ background: 'var(--primary)', color: 'var(--primary-foreground)', borderRadius: '10px', minHeight: '36px' }}>
                 All
               </button>
               <button onClick={() => setResults(prev => prev.map(f => ({ ...f, selected: false })))}
-                className="px-3 py-1.5 text-xs font-medium"
-                style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '10px' }}>
+                className="px-3 py-2 text-xs font-medium"
+                style={{ background: 'var(--secondary)', color: 'var(--secondary-foreground)', borderRadius: '10px', minHeight: '36px' }}>
                 None
               </button>
               <button onClick={() => { setResults(null); setSessionId(null) }}
-                className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
+                className="text-xs font-medium px-3 py-2" style={{ color: 'var(--accent)', minHeight: '36px' }}>
                 New
               </button>
             </div>
@@ -375,8 +299,8 @@ export default function Attendance() {
                   {laborers.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </select>
 
-                <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                  <input type="checkbox" checked={face.selected} onChange={e => updateFace(i, 'selected', e.target.checked)} />
+                <label className="flex items-center gap-2 mt-2 cursor-pointer" style={{ minHeight: '32px' }}>
+                  <input type="checkbox" checked={face.selected} onChange={e => updateFace(i, 'selected', e.target.checked)} style={{ width: '18px', height: '18px' }} />
                   <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Include</span>
                 </label>
               </div>
@@ -401,6 +325,7 @@ export default function Attendance() {
                 background: 'var(--primary)', color: 'var(--primary-foreground)',
                 borderRadius: '16px',
                 opacity: confirming || selectedCount === 0 ? 0.5 : 1,
+                minHeight: '52px',
               }}>
               <Check size={20} />
               {confirming ? 'Confirming…' : `Confirm ${sessionType === 'check_in' ? 'Check-In' : 'Check-Out'} (${selectedCount})`}
@@ -409,113 +334,99 @@ export default function Attendance() {
         </div>
       )}
 
-      {/* Floating Action Button — primary mobile entry point */}
-      {!cameraOpen && (
+      {/* Hidden inputs */}
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFilePick}
+        style={{ display: 'none' }}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFilePick}
+        style={{ display: 'none' }}
+      />
+
+      {/* Floating action cluster — large hit area camera + gallery */}
+      <div
+        style={{
+          position: 'fixed',
+          right: '12px',
+          bottom: `calc(${results ? '88px' : '16px'} + env(safe-area-inset-bottom))`,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          zIndex: 30,
+        }}
+      >
+        {/* Gallery — secondary, smaller */}
         <button
-          onClick={openCamera}
-          aria-label="Capture photo"
+          onClick={openGallery}
+          aria-label="Pick from gallery"
           style={{
-            position: 'fixed',
-            right: '20px',
-            bottom: `calc(${results ? '96px' : '24px'} + env(safe-area-inset-bottom))`,
-            width: '64px',
-            height: '64px',
+            width: '56px',
+            height: '56px',
             borderRadius: '999px',
-            background: 'var(--primary)',
-            color: 'var(--primary-foreground)',
+            background: 'var(--card)',
+            color: 'var(--foreground)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 12px 28px rgba(118,34,36,0.35), 0 4px 10px rgba(0,0,0,0.15)',
-            border: 'none',
-            zIndex: 30,
-            transition: 'transform 0.15s',
+            cursor: 'pointer',
+            padding: 0,
           }}
-          onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.94)')}
-          onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          <Plus size={30} strokeWidth={2.4} />
+          <ImageIcon size={22} strokeWidth={2} />
         </button>
-      )}
 
-      {/* Camera modal — fullscreen */}
-      {cameraOpen && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 50,
-          background: '#000', display: 'flex', flexDirection: 'column',
-        }}>
-          {/* Top bar */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '14px 18px calc(14px + env(safe-area-inset-top)) 18px',
-            color: '#fff',
-          }}>
-            <button onClick={closeCamera} aria-label="Close camera"
-              style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '999px', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-              <X size={20} />
-            </button>
-            <div style={{ fontSize: '13px', opacity: 0.85 }}>
-              {sessionType === 'check_in' ? 'Check In' : 'Check Out'} · {workDate}
-            </div>
-            <div style={{ width: '40px' }} />
-          </div>
-
-          {/* Viewport */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {!capturedUrl ? (
-              <video ref={videoRef} playsInline muted
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <img src={capturedUrl} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            )}
-          </div>
-
-          {/* Bottom controls */}
-          <div style={{
-            padding: '20px 24px calc(28px + env(safe-area-inset-bottom)) 24px',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-around',
-            background: 'linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0))',
-          }}>
-            {!capturedUrl ? (
-              <>
-                <div style={{ width: '56px' }} />
-                <button onClick={takeSnapshot} aria-label="Take photo"
-                  style={{
-                    width: '78px', height: '78px', borderRadius: '999px',
-                    background: '#fff', border: '5px solid rgba(255,255,255,0.35)',
-                    boxShadow: '0 6px 24px rgba(0,0,0,0.45)',
-                  }} />
-                <button onClick={() => fileInputRef.current?.click()} aria-label="Pick from gallery"
-                  style={{ background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '999px', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                  <ImageIcon size={22} />
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={retake}
-                  className="flex items-center gap-2"
-                  style={{
-                    padding: '14px 22px', borderRadius: '999px',
-                    background: 'rgba(255,255,255,0.15)', color: '#fff',
-                    border: '1px solid rgba(255,255,255,0.25)', fontWeight: 500, fontSize: '14px',
-                  }}>
-                  <RotateCcw size={18} /> Retake
-                </button>
-                <button onClick={usePhoto}
-                  className="flex items-center gap-2"
-                  style={{
-                    padding: '14px 26px', borderRadius: '999px',
-                    background: 'var(--primary)', color: 'var(--primary-foreground)',
-                    border: 'none', fontWeight: 600, fontSize: '14px',
-                    boxShadow: '0 8px 22px rgba(118,34,36,0.45)',
-                  }}>
-                  <Check size={18} /> Use Photo
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+        {/* Camera — primary, large with extended hit area via padding */}
+        <button
+          onClick={openCamera}
+          aria-label="Open camera"
+          style={{
+            // Outer padding extends the tap region beyond the visible button
+            padding: '14px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          onTouchStart={e => {
+            const inner = e.currentTarget.querySelector('span')
+            if (inner) inner.style.transform = 'scale(0.94)'
+          }}
+          onTouchEnd={e => {
+            const inner = e.currentTarget.querySelector('span')
+            if (inner) inner.style.transform = 'scale(1)'
+          }}
+        >
+          <span
+            style={{
+              width: '76px',
+              height: '76px',
+              borderRadius: '999px',
+              background: 'var(--primary)',
+              color: 'var(--primary-foreground)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 12px 28px rgba(118,34,36,0.35), 0 4px 10px rgba(0,0,0,0.15)',
+              transition: 'transform 0.15s',
+            }}
+          >
+            <Camera size={32} strokeWidth={2.2} />
+          </span>
+        </button>
+      </div>
     </div>
   )
 }

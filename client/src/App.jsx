@@ -1,18 +1,16 @@
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Camera, History, Users, Building2, Menu, X, FileText } from 'lucide-react'
+import { Camera, History, Users, Building2, Menu } from 'lucide-react'
 import Attendance from './pages/Attendance'
 import AttendanceHistory from './pages/AttendanceHistory'
 import Laborers from './pages/Laborers'
 import Contractors from './pages/Contractors'
-import Quotations from './pages/Quotations'
 
 const navItems = [
   { path: '/', icon: Camera, label: 'Attendance' },
   { path: '/history', icon: History, label: 'History' },
   { path: '/laborers', icon: Users, label: 'Laborers' },
   { path: '/contractors', icon: Building2, label: 'Contractors' },
-  { path: '/quotations', icon: FileText, label: 'Quotations' },
 ]
 
 function App() {
@@ -106,7 +104,6 @@ function App() {
             <Route path="/history" element={<AttendanceHistory />} />
             <Route path="/laborers" element={<Laborers />} />
             <Route path="/contractors" element={<Contractors />} />
-            <Route path="/quotations" element={<Quotations />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

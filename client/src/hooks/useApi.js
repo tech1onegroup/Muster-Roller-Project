@@ -73,54 +73,16 @@ export const getAttendanceRange = (start, end, contractorId) => {
   if (contractorId) params.append('contractor_id', contractorId)
   return request(`/attendance/range?${params}`)
 }
-
-// Quotation Vendors
-export const getVendors = () => request('/quotations/vendors')
-export const createVendor = (data) =>
-  request('/quotations/vendors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const updateVendor = (id, data) =>
-  request(`/quotations/vendors/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-
-// Quotation Projects
-export const getProjects = () => request('/quotations/projects')
-export const createProject = (data) =>
-  request('/quotations/projects', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const updateProject = (id, data) =>
-  request(`/quotations/projects/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const deleteProject = (id) =>
-  request(`/quotations/projects/${id}`, { method: 'DELETE' })
-export const approveProject = (id, data) =>
-  request(`/quotations/projects/${id}/approve`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const rejectProject = (id, data) =>
-  request(`/quotations/projects/${id}/reject`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-
-// Quotation Quotes
-export const getQuotes = (projectId) => request(`/quotations/projects/${projectId}/quotes`)
-export const createQuote = (projectId, formData) =>
-  fetch(`${BASE}/quotations/projects/${projectId}/quotes`, { method: 'POST', body: formData }).then(async (res) => {
+export const updateAttendance = (id, patch) => {
+  const fd = new FormData()
+  Object.entries(patch).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== '') fd.append(k, v)
+  })
+  return fetch(`${BASE}/attendance/${id}`, { method: 'PATCH', body: fd }).then(async (res) => {
     if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
     return res.json()
   })
-export const updateQuote = (quoteId, formData) =>
-  fetch(`${BASE}/quotations/quotes/${quoteId}`, { method: 'PUT', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
-    return res.json()
-  })
-export const deleteQuote = (quoteId) =>
-  request(`/quotations/quotes/${quoteId}`, { method: 'DELETE' })
-
-// Quotation Line Items
-export const getQuoteItems = (quoteId) => request(`/quotations/quotes/${quoteId}/items`)
-export const createQuoteItem = (quoteId, data) =>
-  request(`/quotations/quotes/${quoteId}/items`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const updateQuoteItem = (itemId, data) =>
-  request(`/quotations/items/${itemId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
-export const deleteQuoteItem = (itemId) =>
-  request(`/quotations/items/${itemId}`, { method: 'DELETE' })
-
-// Quotation Comparison
-export const getComparison = (projectId) => request(`/quotations/projects/${projectId}/compare`)
-export const exportComparisonCSV = (projectId) => `${BASE}/quotations/projects/${projectId}/export-pdf`
+}
 
 // Reports
 export const exportCSV = (start, end, contractorId) => {

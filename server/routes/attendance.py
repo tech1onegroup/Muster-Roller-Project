@@ -7,6 +7,7 @@ from typing import Optional
 
 from server.config import UPLOAD_DIR
 from server.db.init import get_db
+from server.services.attendance import update_attendance_record
 
 router = APIRouter()
 
@@ -190,3 +191,24 @@ async def get_attendance_range(
     query += " ORDER BY a.work_date DESC, l.name"
     rows = await db.execute_fetchall(query, params)
     return [dict(r) for r in rows]
+
+
+@router.patch("/{record_id}")
+async def patch_attendance(
+    record_id: str,
+    status: Optional[str] = Form(None),
+    check_in_time: Optional[str] = Form(None),
+    check_out_time: Optional[str] = Form(None),
+    overtime_hours: Optional[float] = Form(None),
+):
+    db = await get_db()
+    try:
+        updated = await update_attendance_record(db, record_id, {
+            "status": status,
+            "check_in_time": check_in_time,
+            "check_out_time": check_out_time,
+            "overtime_hours": overtime_hours,
+        })
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return updated

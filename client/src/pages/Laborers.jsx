@@ -71,12 +71,18 @@ function FormPanel({ title, onClose, onSubmit, formState, setFormState, isCreate
   )
 }
 
-function IconBtn({ onClick, title, children, color, hoverBg }) {
+function IconBtn({ onClick, title, children, color }) {
   return (
-    <button onClick={onClick} title={title} className="p-2"
-      style={{ borderRadius: '8px', color: color || 'var(--text-muted)' }}
-      onMouseEnter={e => e.currentTarget.style.background = hoverBg || 'var(--muted)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+    <button onClick={onClick} title={title} aria-label={title}
+      style={{
+        width: 44, height: 44,
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        borderRadius: '10px',
+        background: 'var(--muted)',
+        border: 'none',
+        color: color || 'var(--foreground)',
+        cursor: 'pointer',
+      }}>
       {children}
     </button>
   )
@@ -370,7 +376,7 @@ export default function Laborers() {
                         <IconBtn onClick={() => startEdit(l)} title="Edit laborer"><Pencil size={15} /></IconBtn>
                         <IconBtn onClick={() => handleReEnroll(l.id)} title="Re-enroll face"><RefreshCw size={15} /></IconBtn>
                         <IconBtn onClick={() => toggleStatus(l.id, l.status)} title={l.status === 'active' ? 'Deactivate' : 'Activate'}
-                          color={l.status === 'active' ? 'var(--destructive)' : '#15803d'} hoverBg={l.status === 'active' ? '#fef2f2' : '#f0fdf4'}>
+                          color={l.status === 'active' ? 'var(--destructive)' : '#15803d'}>
                           {l.status === 'active' ? <UserX size={15} /> : <UserCheck size={15} />}
                         </IconBtn>
                       </div>

@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 
 from server.config import UPLOAD_DIR, BASE_DIR
 from server.db.init import init_db, close_db
-from server.routes import contractors, laborers, attendance, reports, quotations
+from server.routes import contractors, laborers, attendance, reports
 
 dist_dir = BASE_DIR / "client" / "dist"
 
@@ -32,7 +32,6 @@ app.include_router(contractors.router, prefix="/api/contractors", tags=["contrac
 app.include_router(laborers.router, prefix="/api/laborers", tags=["laborers"])
 app.include_router(attendance.router, prefix="/api/attendance", tags=["attendance"])
 app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
-app.include_router(quotations.router, prefix="/api/quotations", tags=["quotations"])
 
 # Static files
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
