@@ -29,16 +29,37 @@ function isoToLocalInput(iso) {
 
 function localInputToIso(local) {
   if (!local) return ''
-  // datetime-local has no timezone; treat as local and convert to ISO
-  const d = new Date(local)
-  if (isNaN(d.getTime())) return ''
-  return d.toISOString()
+  // Keep naive-local ISO (no timezone) to match server's stored format
+  // (server writes datetime.now().isoformat() — naive). Mixing naive & aware
+  // breaks hours_worked recomputation on the server.
+  return local.length === 16 ? `${local}:00` : local
 }
 
 function EditModal({ record, onClose, onSave }) {
   const [status, setStatus] = useState(record.status || 'present')
   const [checkIn, setCheckIn] = useState(isoToLocalInput(record.check_in_time))
   const [checkOut, setCheckOut] = useState(isoToLocalInput(record.check_out_time))
+  const [checkOutTouched, setCheckOutTouched] = useState(false)
+
+  const handleCheckInChange = (val) => {
+    const prevDate = checkIn.slice(0, 10)
+    const newDate = val.slice(0, 10)
+    setCheckIn(val)
+    // Auto-sync check-out date to match check-in date, unless user has
+    // explicitly edited check-out themselves.
+    if (newDate && newDate !== prevDate && !checkOutTouched) {
+      if (checkOut) {
+        setCheckOut(`${newDate}${checkOut.slice(10)}`)
+      } else {
+        setCheckOut(`${newDate}T17:00`)
+      }
+    }
+  }
+
+  const handleCheckOutChange = (val) => {
+    setCheckOut(val)
+    setCheckOutTouched(true)
+  }
   const [overtime, setOvertime] = useState(record.overtime_hours ?? 0)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
@@ -126,12 +147,12 @@ function EditModal({ record, onClose, onSave }) {
 
           <div>
             <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Check In</label>
-            <input type="datetime-local" value={checkIn} onChange={e => setCheckIn(e.target.value)} style={inputStyle} />
+            <input type="datetime-local" value={checkIn} onChange={e => handleCheckInChange(e.target.value)} style={inputStyle} />
           </div>
 
           <div>
             <label className="block text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>Check Out</label>
-            <input type="datetime-local" value={checkOut} onChange={e => setCheckOut(e.target.value)} style={inputStyle} />
+            <input type="datetime-local" value={checkOut} onChange={e => handleCheckOutChange(e.target.value)} style={inputStyle} />
           </div>
 
           <div>

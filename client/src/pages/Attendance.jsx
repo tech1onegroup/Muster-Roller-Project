@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { Camera, Check, Image as ImageIcon } from 'lucide-react'
+import { Camera, Check, Image as ImageIcon, X, RefreshCw } from 'lucide-react'
 import { uploadGroupPhoto, confirmAttendance, getLaborers } from '../hooks/useApi'
+
+const hasGetUserMedia = () =>
+  typeof navigator !== 'undefined' &&
+  !!navigator.mediaDevices &&
+  typeof navigator.mediaDevices.getUserMedia === 'function'
 
 const selectStyle = {
   padding: '8px 12px',
@@ -25,15 +30,69 @@ export default function Attendance() {
 
   const cameraInputRef = useRef(null)
   const galleryInputRef = useRef(null)
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const [facingMode, setFacingMode] = useState('environment')
+  const [preview, setPreview] = useState(null) // { file, url }
 
   useEffect(() => {
     getLaborers({ status: 'active' }).then(setLaborers).catch(() => {})
   }, [])
 
+  const stopStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+    }
+  }
+
+  const startStream = async (mode) => {
+    stopStream()
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: mode },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        aspectRatio: { ideal: 16 / 9 },
+      },
+      audio: false,
+    })
+    streamRef.current = stream
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
+      await videoRef.current.play().catch(() => {})
+    }
+  }
+
+  useEffect(() => {
+    if (cameraOpen) {
+      startStream(facingMode).catch(err => {
+        setError('Unable to access camera: ' + (err?.message || err))
+        setCameraOpen(false)
+        // Fallback to native file input with capture
+        cameraInputRef.current?.click()
+      })
+    } else {
+      stopStream()
+    }
+    return stopStream
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraOpen, facingMode])
+
   const openCamera = () => {
     setError('')
     setSuccess('')
-    cameraInputRef.current?.click()
+    // Prefer in-page webcam via getUserMedia on any device that supports it —
+    // this works on desktop, mobile web, and DevTools mobile emulation.
+    // Requires HTTPS (or localhost). Falls back to the native file input with
+    // capture="environment" when getUserMedia is unavailable (e.g. insecure
+    // context or in-app browsers that block it).
+    if (hasGetUserMedia()) {
+      setCameraOpen(true)
+    } else {
+      cameraInputRef.current?.click()
+    }
   }
 
   const openGallery = () => {
@@ -41,6 +100,47 @@ export default function Attendance() {
     setSuccess('')
     galleryInputRef.current?.click()
   }
+
+  const captureFromVideo = async () => {
+    const video = videoRef.current
+    if (!video || !video.videoWidth) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')
+    // Un-mirror the user-facing camera so the saved photo matches what the user sees
+    if (facingMode === 'user') {
+      ctx.translate(canvas.width, 0)
+      ctx.scale(-1, 1)
+    }
+    ctx.drawImage(video, 0, 0)
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92))
+    if (!blob) return
+    const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' })
+    const url = URL.createObjectURL(blob)
+    stopStream()
+    setPreview({ file, url })
+  }
+
+  const confirmPreview = async () => {
+    if (!preview) return
+    const file = preview.file
+    URL.revokeObjectURL(preview.url)
+    setPreview(null)
+    setCameraOpen(false)
+    await processPhoto(file)
+  }
+
+  const retakePreview = async () => {
+    if (preview) URL.revokeObjectURL(preview.url)
+    setPreview(null)
+    try { await startStream(facingMode) } catch (err) {
+      setError('Unable to access camera: ' + (err?.message || err))
+      setCameraOpen(false)
+    }
+  }
+
+  const flipCamera = () => setFacingMode(m => (m === 'environment' ? 'user' : 'environment'))
 
   const processPhoto = async (file) => {
     setUploading(true)
@@ -355,6 +455,131 @@ export default function Attendance() {
         </div>
       )}
 
+      {/* Webcam modal (desktop/web) */}
+      {cameraOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            background: 'rgba(0,0,0,0.92)',
+            display: 'flex', flexDirection: 'column',
+          }}
+        >
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {preview ? (
+              <img
+                src={preview.url}
+                alt="Captured preview"
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                playsInline
+                muted
+                autoPlay
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'contain',
+                  transform: facingMode === 'user' ? 'scaleX(-1)' : 'none',
+                }}
+              />
+            )}
+          </div>
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px',
+            padding: 'calc(20px + env(safe-area-inset-bottom)) 20px 20px',
+          }}>
+            {preview ? (
+              <>
+                <button
+                  onClick={retakePreview}
+                  className="flex items-center gap-2"
+                  style={{
+                    padding: '0 22px', height: 56, borderRadius: 999,
+                    background: 'rgba(255,255,255,0.12)', color: '#fff',
+                    border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 500,
+                  }}
+                >
+                  <RefreshCw size={18} /> Retake
+                </button>
+                <button
+                  onClick={confirmPreview}
+                  className="flex items-center gap-2"
+                  style={{
+                    padding: '0 26px', height: 64, borderRadius: 999,
+                    background: '#fff', color: '#000',
+                    border: '4px solid rgba(255,255,255,0.35)',
+                    cursor: 'pointer', fontSize: 16, fontWeight: 600,
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
+                  }}
+                >
+                  <Check size={22} /> Upload
+                </button>
+                <button
+                  onClick={() => {
+                    if (preview) URL.revokeObjectURL(preview.url)
+                    setPreview(null)
+                    setCameraOpen(false)
+                  }}
+                  aria-label="Close"
+                  style={{
+                    width: 56, height: 56, borderRadius: 999,
+                    background: 'rgba(255,255,255,0.12)', color: '#fff',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <X size={24} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setCameraOpen(false)}
+                  aria-label="Close camera"
+                  style={{
+                    width: 56, height: 56, borderRadius: 999,
+                    background: 'rgba(255,255,255,0.12)', color: '#fff',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <X size={24} />
+                </button>
+                <button
+                  onClick={captureFromVideo}
+                  aria-label="Capture photo"
+                  style={{
+                    width: 84, height: 84, borderRadius: 999,
+                    background: '#fff', color: '#000',
+                    border: '4px solid rgba(255,255,255,0.35)',
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.35)',
+                  }}
+                >
+                  <Camera size={34} strokeWidth={2.2} />
+                </button>
+                <button
+                  onClick={flipCamera}
+                  aria-label="Switch camera"
+                  style={{
+                    width: 56, height: 56, borderRadius: 999,
+                    background: 'rgba(255,255,255,0.12)', color: '#fff',
+                    border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <RefreshCw size={22} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Hidden inputs */}
       <input
         ref={cameraInputRef}
@@ -372,82 +597,6 @@ export default function Attendance() {
         style={{ display: 'none' }}
       />
 
-      {/* Floating action cluster — large hit area camera + gallery */}
-      <div
-        style={{
-          position: 'fixed',
-          right: '12px',
-          bottom: `calc(${results ? '88px' : '16px'} + env(safe-area-inset-bottom))`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px',
-          zIndex: 30,
-        }}
-      >
-        {/* Gallery — secondary, smaller */}
-        <button
-          onClick={openGallery}
-          aria-label="Pick from gallery"
-          style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '999px',
-            background: 'var(--card)',
-            color: 'var(--foreground)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          <ImageIcon size={22} strokeWidth={2} />
-        </button>
-
-        {/* Camera — primary, large with extended hit area via padding */}
-        <button
-          onClick={openCamera}
-          aria-label="Open camera"
-          style={{
-            // Outer padding extends the tap region beyond the visible button
-            padding: '14px',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onTouchStart={e => {
-            const inner = e.currentTarget.querySelector('span')
-            if (inner) inner.style.transform = 'scale(0.94)'
-          }}
-          onTouchEnd={e => {
-            const inner = e.currentTarget.querySelector('span')
-            if (inner) inner.style.transform = 'scale(1)'
-          }}
-        >
-          <span
-            style={{
-              width: '76px',
-              height: '76px',
-              borderRadius: '999px',
-              background: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 12px 28px rgba(118,34,36,0.35), 0 4px 10px rgba(0,0,0,0.15)',
-              transition: 'transform 0.15s',
-            }}
-          >
-            <Camera size={32} strokeWidth={2.2} />
-          </span>
-        </button>
-      </div>
     </div>
   )
 }
