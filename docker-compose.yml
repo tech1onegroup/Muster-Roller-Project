@@ -8,4 +8,7 @@ services:
       - ./models:/app/models:ro
       - ./data:/app/data
       - ./server/uploads:/app/server/uploads
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DB_SCHEMA: ${DB_SCHEMA:-muster_roller}
     restart: unless-stopped

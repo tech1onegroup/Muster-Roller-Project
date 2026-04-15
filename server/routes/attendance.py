@@ -140,7 +140,7 @@ async def confirm_attendance(
                 )
 
     # Mark session as confirmed
-    await db.execute("UPDATE attendance_sessions SET confirmed = 1 WHERE id = ?", (session_id,))
+    await db.execute("UPDATE attendance_sessions SET confirmed = TRUE WHERE id = ?", (session_id,))
     await db.commit()
     return {"ok": True, "confirmed_count": len(match_list)}
 

@@ -1,6 +1,8 @@
 fastapi
 uvicorn[standard]
 aiosqlite
+asyncpg
+python-dotenv
 onnxruntime
 opencv-python-headless
 easyocr
