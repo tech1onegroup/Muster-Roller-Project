@@ -1,8 +1,6 @@
 services:
   app:
-    build: .
-    image: labour-attendance:latest
-    pull_policy: build
+    image: ghcr.io/tech1onegroup/muster-roller-project:latest
     container_name: labour-attendance
     ports:
       - "8000:8000"
