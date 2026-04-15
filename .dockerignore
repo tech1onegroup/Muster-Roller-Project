@@ -1,0 +1,45 @@
+# VCS
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.venv
+venv
+env
+.pytest_cache
+
+# Node
+client/node_modules
+client/dist
+client/.vite
+**/node_modules
+
+# Local runtime data (use volumes instead)
+data
+server/uploads
+*.db
+*.db-shm
+*.db-wal
+
+# Models (mount as volume — they are large)
+models
+
+# Test / docs artifacts
+_testdata
+.playwright-mcp
+design-system-template
+docs
+test_face.jpg
+
+# IDE / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
