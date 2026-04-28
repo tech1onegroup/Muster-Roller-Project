@@ -1,0 +1,21 @@
+name: Remove SSH Key from Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  remove-key:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Remove Navneet Singh SSH keys from server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: muster.dev.onegroup.co.in
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sed -i '/Navneet Singh/d' ~/.ssh/authorized_keys
+            sed -i '/onegroup@desktop/d' ~/.ssh/authorized_keys
+            echo "Done. Remaining keys:"
+            cat ~/.ssh/authorized_keys

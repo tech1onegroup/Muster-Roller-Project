@@ -33,24 +33,24 @@ export const getLaborers = (params = {}) => {
 }
 export const createLaborer = (formData) =>
   fetch(`${BASE}/laborers`, { method: 'POST', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 export const updateLaborer = (id, formData) =>
   fetch(`${BASE}/laborers/${id}`, { method: 'PUT', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 export const reEnrollFace = (id, formData) =>
   fetch(`${BASE}/laborers/${id}/re-enroll`, { method: 'POST', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 export const updateLaborerStatus = (id, status) => {
   const fd = new FormData()
   fd.append('status', status)
   return fetch(`${BASE}/laborers/${id}/status`, { method: 'PATCH', body: fd }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 }
@@ -58,12 +58,12 @@ export const updateLaborerStatus = (id, status) => {
 // Attendance
 export const uploadGroupPhoto = (formData) =>
   fetch(`${BASE}/attendance/upload`, { method: 'POST', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 export const confirmAttendance = (formData) =>
   fetch(`${BASE}/attendance/confirm`, { method: 'POST', body: formData }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 export const getAttendance = (date) =>
@@ -79,7 +79,7 @@ export const updateAttendance = (id, patch) => {
     if (v !== undefined && v !== null && v !== '') fd.append(k, v)
   })
   return fetch(`${BASE}/attendance/${id}`, { method: 'PATCH', body: fd }).then(async (res) => {
-    if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
+    if (!res.ok) throw new Error((await res.json().catch(() => ({ detail: res.statusText }))).detail || 'Failed')
     return res.json()
   })
 }

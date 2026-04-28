@@ -21,34 +21,39 @@ async def upload_group_photo(
     if session_type not in ("check_in", "check_out"):
         raise HTTPException(400, "session_type must be 'check_in' or 'check_out'")
 
-    # Save photo
-    ext = Path(photo.filename).suffix or ".jpg"
-    filename = f"{work_date}_{session_type}_{uuid.uuid4().hex[:8]}{ext}"
-    photo_path = f"group_photos/{filename}"
-    dest = UPLOAD_DIR / photo_path
-    dest.write_bytes(await photo.read())
+    try:
+        # Save photo
+        ext = Path(photo.filename).suffix or ".jpg"
+        filename = f"{work_date}_{session_type}_{uuid.uuid4().hex[:8]}{ext}"
+        photo_path = f"group_photos/{filename}"
+        dest = UPLOAD_DIR / photo_path
+        dest.write_bytes(await photo.read())
 
-    # Run face detection + matching
-    from server.services.face import detect_and_match
-    results = await detect_and_match(str(dest))
+        # Run face detection + matching
+        from server.services.face import detect_and_match
+        results = await detect_and_match(str(dest))
 
-    # Create session record
-    session_id = str(uuid.uuid4())
-    db = await get_db()
-    await db.execute(
-        """INSERT INTO attendance_sessions (id, photo_path, session_type, work_date, captured_at)
-           VALUES (?, ?, ?, ?, ?)""",
-        (session_id, photo_path, session_type, work_date, datetime.now().isoformat()),
-    )
-    await db.commit()
+        # Create session record
+        session_id = str(uuid.uuid4())
+        db = await get_db()
+        await db.execute(
+            """INSERT INTO attendance_sessions (id, photo_path, session_type, work_date, captured_at)
+               VALUES (?, ?, ?, ?, ?)""",
+            (session_id, photo_path, session_type, work_date, datetime.now().isoformat()),
+        )
+        await db.commit()
 
-    return {
-        "session_id": session_id,
-        "session_type": session_type,
-        "work_date": work_date,
-        "faces": results,
-        "photo_path": photo_path,
-    }
+        return {
+            "session_id": session_id,
+            "session_type": session_type,
+            "work_date": work_date,
+            "faces": results,
+            "photo_path": photo_path,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/confirm")
